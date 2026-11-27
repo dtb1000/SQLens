@@ -1,0 +1,58 @@
+name: Build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Publish a release with the Windows installer
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+
+  windows-installer:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build the installer
+        run: npx electron-builder --win --publish never
+      - name: Keep the installer as a download on this run
+        uses: actions/upload-artifact@v4
+        with:
+          name: SQLens-Setup
+          path: dist/*.exe
+          retention-days: 14
+      - name: Publish a release
+        if: github.event_name == 'workflow_dispatch' && inputs.release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+          gh release create "v$version" dist/*.exe \
+            --target "$GITHUB_SHA" \
+            --title "SQLens $version" \
+            --notes "Download SQLens-Setup-$version.exe below and double-click it to install. If Windows says it protected your PC, choose More info, then Run anyway. See the user guide: https://github.com/${{ github.repository }}/blob/main/docs/user-guide.md"
