@@ -1,0 +1,72 @@
+{
+  "name": "sqlens",
+  "productName": "SQLens",
+  "version": "1.0.0",
+  "description": "Watch your data transform. A desktop SQL workbench that shows what a query does to your tables while you write it.",
+  "main": "src/main/main.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "test": "node test/e2e.js",
+    "dist": "electron-builder",
+    "screenshots": "node scripts/screenshots.js"
+  },
+  "dependencies": {
+    "mssql": "^11.0.1",
+    "mysql2": "^3.11.3",
+    "oracledb": "^6.6.0",
+    "pg": "^8.13.0",
+    "sql.js": "1.10.3"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "playwright": "^1.63.0"
+  },
+  "build": {
+    "appId": "dev.sqlens.app",
+    "productName": "SQLens",
+    "artifactName": "SQLens-Setup-${version}.${ext}",
+    "npmRebuild": false,
+    "files": [
+      "src/**/*",
+      "docs/**/*",
+      "build/icon.png",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SQLens",
+      "runAfterFinish": true
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "build/icon.png",
+      "category": "public.app-category.developer-tools"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "build/icon.png",
+      "category": "Development"
+    }
+  },
+  "author": "Darshan"
+}

@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:">
+<title>SQLens</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-run" viewBox="0 0 24 24"><path d="M5 5v14M9 5l10 7-10 7z"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <header class="toolbar">
+    <button class="tbtn" id="homeBtn" type="button" title="Back to the start page: connect to a database or open an example">Start page</button>
+    <span class="tsep" aria-hidden="true"></span>
+    <button class="tbtn" id="openBtn" type="button" title="Open a .sql file into the Query area">Open query…</button>
+    <button class="tbtn" id="saveBtn" type="button" title="Save the Query area as a .sql file">Save query…</button>
+    <span class="tsep" aria-hidden="true"></span>
+    <button class="tbtn" id="connectBtn" type="button">Connect…</button>
+    <button class="tbtn" id="lessonsBtn" type="button" title="Step by step SQL lessons, from beginner to intermediate">Lessons</button>
+    <button class="tbtn" id="resetBtn" type="button" title="Put the sample data back the way it started">Reset sample data</button>
+    <span class="grow"></span>
+    <div class="seg theme-seg" role="group" aria-label="Light or dark">
+      <button type="button" data-theme-pick="" aria-pressed="true" title="Match the light or dark setting of your computer">System</button>
+      <button type="button" data-theme-pick="light" aria-pressed="false">Light</button>
+      <button type="button" data-theme-pick="dark" aria-pressed="false">Dark</button>
+    </div>
+    <button class="tbtn" id="settingsBtn" type="button">Settings…</button>
+    <button class="tbtn" id="guideBtn" type="button" title="How to use SQLens">Documentation</button>
+    <details class="about">
+      <summary class="tbtn">About</summary>
+      <div class="pop">
+        <p class="about-name"><b>SQLens</b> <span id="aboutVersion"></span><br><span class="muted">Watch your data transform.</span></p>
+        <h3>What this version assumes</h3>
+        <ul>
+          <li>Tables update as you type. The result and the steps appear when you press Run.</li>
+          <li>Run changes the data for real, like any SQL client. On the sample database, Reset puts it back.</li>
+          <li>Tables show the first 100 rows. Show, above the tables, raises it to 500 or 1000.</li>
+          <li>To draw the steps, the app makes short-lived temporary tables on your connection. They are removed when it finishes.</li>
+          <li>A window function in the same query as GROUP BY still runs and shows a result, but its steps are not drawn yet.</li>
+          <li>History, settings and your draft query are kept on this computer only.</li>
+        </ul>
+      </div>
+    </details>
+  </header>
+
+  <main class="welcome" id="welcome" aria-labelledby="welcomeTitle">
+    <div class="wl-inner">
+      <h1 id="welcomeTitle">SQLens</h1>
+      <p class="wl-tag">Watch your data transform.</p>
+      <p class="wl-sub">Connect to your database, learn SQL step by step, or open an example to see how the app works.</p>
+
+      <section class="wl-sec" aria-labelledby="wlConnect">
+        <h2 id="wlConnect">Connect to a database</h2>
+        <div class="wl-tiles" id="wlEngines">
+          <button type="button" class="wl-tile" data-engine="postgres"><b>PostgreSQL</b><span>Also Supabase and Neon</span></button>
+          <button type="button" class="wl-tile" data-engine="mysql"><b>MySQL or MariaDB</b><span>MySQL 8, MariaDB 10.2 or later</span></button>
+          <button type="button" class="wl-tile" data-engine="sqlserver"><b>SQL Server</b><span>Also Azure SQL</span></button>
+          <button type="button" class="wl-tile" data-engine="oracle"><b>Oracle</b><span>Oracle 18c or later</span></button>
+          <button type="button" class="wl-tile" data-engine="sqlite"><b>SQLite file</b><span>A .sqlite or .db file on this computer</span></button>
+        </div>
+        <div class="wl-recent" id="wlRecent"></div>
+      </section>
+
+      <section class="wl-sec" aria-labelledby="wlLearn">
+        <h2 id="wlLearn">Learn SQL step by step</h2>
+        <div class="wl-tiles wl-tracks" id="wlTracks"></div>
+        <p class="wl-note">Short lessons with a task each. Write a query, press <b>Check my answer</b>, and move on when it is right. No experience needed for the beginner lessons.</p>
+      </section>
+
+      <section class="wl-sec" aria-labelledby="wlTry">
+        <h2 id="wlTry">Try it with example data</h2>
+        <div class="wl-tiles wl-samples">
+          <button type="button" class="wl-tile" data-sample="company"><b>Company</b><span>Departments, employees and orders. Joins, groups, and an employee with no department.</span><small>3 tables</small></button>
+          <button type="button" class="wl-tile" data-sample="school"><b>School</b><span>Students, courses and enrolments. A many to many link, and grades not yet given.</span><small>3 tables</small></button>
+          <button type="button" class="wl-tile" data-sample="library"><b>Library</b><span>Authors, books and loans. Dates, books still out, and a book with no author.</span><small>3 tables</small></button>
+        </div>
+        <p class="wl-note">Examples live inside the app. Change them as much as you like, and <b>Reset sample data</b> puts them back.</p>
+      </section>
+
+      <p class="wl-foot"><button type="button" class="linkbtn" id="wlGuide">Read the documentation</button><span aria-hidden="true">·</span><a href="https://github.com/dtb1000/SQLens/blob/main/docs/user-guide.md" target="_blank" rel="noopener">Documentation online</a><span id="wlVersion"></span></p>
+    </div>
+  </main>
+
+  <div class="grid" id="grid" hidden>
+    <section class="pane pane-code" aria-labelledby="codeLabel">
+      <div class="pane-head">
+        <h2 class="pane-title" id="codeLabel">Query</h2>
+        <span class="grow"></span>
+        <label class="field" for="examples" id="examplesLabel">Examples
+          <select id="examples" class="ctl"></select>
+        </label>
+        <button class="ctl" id="formatBtn" type="button" title="Lay the statement under the cursor out neatly (Shift + Alt + F)">Format</button>
+        <button class="run" id="runBtn" type="button" title="Run the statement under the cursor (Ctrl + Enter)"><svg class="ic"><use href="#i-run"/></svg>Run</button>
+      </div>
+      <section class="lesson" id="lesson" hidden aria-labelledby="lsTitle">
+        <div class="ls-head">
+          <label class="ls-pick"><span class="vh">Lesson</span><select id="lsPick" class="ctl" aria-label="Choose a lesson"></select></label>
+          <span class="grow"></span>
+          <button type="button" class="tbtn" id="lsFold" aria-expanded="true">Hide lesson</button>
+          <button type="button" class="tbtn" id="lsClose">Close</button>
+        </div>
+        <div class="ls-body" id="lsBody"></div>
+        <div class="ls-task" id="lsTask"></div>
+        <div class="ls-msg" id="lsMsg" aria-live="polite"></div>
+        <div class="ls-foot">
+          <button type="button" class="ctl primary" id="lsCheck" title="Runs your query and compares it with the answer">Check my answer</button>
+          <button type="button" class="ctl" id="lsHint">Hint</button>
+          <button type="button" class="ctl" id="lsShow">Show the answer</button>
+          <span class="grow"></span>
+          <button type="button" class="ctl" id="lsPrev">&larr; Previous</button>
+          <button type="button" class="ctl" id="lsNext">Next &rarr;</button>
+        </div>
+      </section>
+      <div class="editor">
+        <div class="gutter" id="gutter" aria-hidden="true"></div>
+        <div class="editor-text">
+          <pre id="hl" aria-hidden="true"></pre>
+          <div class="ac" id="ac" role="listbox" aria-label="Suggestions" hidden></div>
+          <textarea id="sql" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="SQL query. Press Control or Command plus Enter to run the statement under the cursor. Suggestions appear as you type; use the arrow keys and Enter or Tab to pick one, or Escape to close them." aria-autocomplete="list" aria-controls="ac"></textarea>
+        </div>
+      </div>
+      <p class="code-foot" id="curInfo"></p>
+    </section>
+
+    <div class="split split-h" id="splitH" role="separator" aria-orientation="horizontal" aria-label="Drag to resize the query and output areas" tabindex="0"></div>
+
+    <section class="pane pane-out" aria-label="Output">
+      <div class="pane-head out-tabs" role="tablist">
+        <button class="otab" role="tab" id="tabResult" aria-selected="true" aria-controls="outResult">Result</button>
+        <button class="otab" role="tab" id="tabSteps" aria-selected="false" aria-controls="outSteps">How it ran <span class="badge" id="stepCount">0</span></button>
+        <button class="otab" role="tab" id="tabHistory" aria-selected="false" aria-controls="outHistory">History</button>
+        <span class="grow"></span>
+        <details class="menu" id="exportMenu">
+          <summary class="ctl" id="exportBtn">Export…</summary>
+          <div class="pop" id="exportList" role="menu"></div>
+        </details>
+      </div>
+      <div class="pane-body" id="outResult" role="tabpanel" aria-labelledby="tabResult"></div>
+      <div class="pane-body" id="outSteps" role="tabpanel" aria-labelledby="tabSteps" hidden>
+        <div class="steps-top">
+          <p class="order-note">You write <b>SELECT, FROM, WHERE, GROUP BY, ORDER BY</b>. The database works in a different order: <b>FROM, JOIN, WHERE, GROUP BY, HAVING, SELECT, ORDER BY, LIMIT</b>. Each stop on the line below is one stage.</p>
+          <ol class="strip" id="strip" aria-label="Steps"></ol>
+          <div class="step-ctl">
+            <button class="ctl" id="prevBtn" type="button">&larr; Back</button>
+            <button class="ctl" id="nextBtn" type="button">Next &rarr;</button>
+            <button class="ctl" id="playBtn" type="button"><span>Play all</span></button>
+            <label class="field" for="showAll"><input type="checkbox" id="showAll"> Show every step at once</label>
+          </div>
+        </div>
+        <div class="stage" id="stage" aria-live="polite"></div>
+      </div>
+      <div class="pane-body" id="outHistory" role="tabpanel" aria-labelledby="tabHistory" hidden>
+        <div class="hist-top">
+          <input type="search" id="histFilter" class="ctl" placeholder="Search history" aria-label="Search history">
+          <span class="grow"></span>
+          <button class="ctl" id="histClear" type="button">Clear history</button>
+        </div>
+        <ol class="hist" id="histList"></ol>
+      </div>
+    </section>
+
+    <div class="split split-v" id="splitV" role="separator" aria-orientation="vertical" aria-label="Drag to resize the tables area" tabindex="0"></div>
+
+    <section class="pane pane-data" aria-labelledby="dataLabel">
+      <div class="pane-head">
+        <h2 class="pane-title" id="dataLabel">Tables</h2>
+        <div class="seg" role="tablist" aria-label="Tables view">
+          <button type="button" role="tab" id="viewRows" aria-selected="true">Rows</button>
+          <button type="button" role="tab" id="viewDetails" aria-selected="false" title="Column types, sizes, keys and links for each table">Details</button>
+          <button type="button" role="tab" id="viewMap" aria-selected="false">Map</button>
+        </div>
+        <span class="grow"></span>
+        <label class="field" for="previewRows">Show
+          <select id="previewRows" class="ctl"><option value="100">100 rows</option><option value="500">500 rows</option><option value="1000">1000 rows</option></select>
+        </label>
+        <label class="field" for="follow"><input type="checkbox" id="follow" checked>Follow my query</label>
+      </div>
+      <div class="pane-body map-body" id="mapBody" hidden></div>
+      <div class="data-wrap">
+        <nav class="table-list" aria-label="Tables in this database">
+          <div class="tabs" role="tablist" id="tabs" aria-orientation="vertical"></div>
+        </nav>
+        <div class="data-main">
+          <div class="pane-body" id="dataBody"></div>
+          <div class="legend" aria-label="Highlight key">
+            <span><i class="k k-sel">name</i>picked by SELECT</span>
+            <span><i class="k k-drop">Ben</i>removed by WHERE</span>
+            <span><i class="k k-plan">with_raise</i>new column you are building</span>
+            <span><i class="k k-chg">48000</i>value about to change</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer class="status">
+    <div class="conn" id="conn" aria-live="polite"><span>Not connected</span></div>
+    <span class="grow"></span>
+    <span class="notice" id="runInfo"></span>
+    <span class="ver" id="appVersion"></span>
+  </footer>
+</div>
+
+<div class="modal" id="connModal" hidden>
+  <form class="dialog" id="connForm" aria-labelledby="connTitle">
+    <h2 id="connTitle">Connect to a database</h2>
+    <div class="recent" id="recent"></div>
+    <div class="form">
+      <label for="cEngine">Type</label>
+      <select id="cEngine">
+        <option value="sqlite">SQLite</option>
+        <option value="postgres">PostgreSQL</option>
+        <option value="mysql">MySQL / MariaDB</option>
+        <option value="sqlserver">SQL Server</option>
+        <option value="oracle">Oracle</option>
+      </select>
+      <label for="cFile" data-for="sqlite">File</label>
+      <div class="row" data-for="sqlite"><input type="text" id="cFile" placeholder="Leave empty for the built-in sample"><button class="ctl" type="button" id="cBrowse">Browse…</button></div>
+      <label for="cHost" data-for="server">Host</label><input type="text" id="cHost" data-for="server" placeholder="localhost">
+      <label for="cPort" data-for="server">Port</label><input type="number" id="cPort" data-for="server">
+      <label for="cDb" data-for="server">Database</label><input type="text" id="cDb" data-for="server">
+      <label for="cUser" data-for="server">User</label><input type="text" id="cUser" data-for="server" autocomplete="off">
+      <label for="cPass" data-for="server">Password</label><input type="password" id="cPass" data-for="server" autocomplete="off">
+      <label for="cSsl" data-for="server">Encrypted (SSL)</label><span data-for="server"><input type="checkbox" id="cSsl"></span>
+    </div>
+    <p class="hint" id="cHint"></p>
+    <div class="err" id="cErr" hidden style="margin:0"></div>
+    <div class="actions">
+      <button class="ctl" type="button" id="cCancel">Cancel</button>
+      <button class="ctl primary" type="submit" id="cGo">Connect</button>
+    </div>
+  </form>
+</div>
+
+<div class="modal" id="setModal" hidden>
+  <form class="dialog" id="setForm" aria-labelledby="setTitle">
+    <h2 id="setTitle">Settings</h2>
+    <div class="form">
+      <label for="sSize">Text size</label>
+      <select id="sSize"><option value="0.9">Small</option><option value="1">Normal</option><option value="1.15">Large</option><option value="1.3">Larger</option><option value="1.5">Largest</option></select>
+      <label for="sTheme">Colours</label>
+      <select id="sTheme"><option value="">Follow the computer</option><option value="light">Light</option><option value="dark">Dark</option><option value="contrast">High contrast, light</option><option value="contrast-dark">High contrast, dark</option></select>
+      <label for="sFont">Letters</label>
+      <select id="sFont"><option value="normal">Normal</option><option value="wide">Wider spacing</option></select>
+      <label for="sLines">Line spacing</label>
+      <select id="sLines"><option value="1">Normal</option><option value="1.25">Relaxed</option><option value="1.5">Loose</option></select>
+      <label for="sMotion">Movement</label>
+      <select id="sMotion"><option value="on">Show rows moving and fading</option><option value="off">No movement</option></select>
+      <label for="sPlay">Play all speed</label>
+      <select id="sPlay"><option value="6000">Slow, 6 seconds a stage</option><option value="3500">Normal, 3.5 seconds</option><option value="2000">Fast, 2 seconds</option></select>
+      <label for="sSuggest">Suggestions</label>
+      <select id="sSuggest"><option value="on">Show while typing</option><option value="manual">Only with Ctrl + Space</option></select>
+    </div>
+    <p class="hint">Changes apply straight away and are kept for next time.</p>
+    <div class="actions">
+      <button class="ctl" type="button" id="setReset">Back to defaults</button>
+      <button class="ctl primary" type="submit">Done</button>
+    </div>
+  </form>
+</div>
+
+<div class="modal" id="guideModal" hidden>
+  <div class="guide" role="dialog" aria-labelledby="guideTitle">
+    <div class="guide-head"><h2 id="guideTitle">Documentation</h2><span class="grow"></span><a class="ctl" href="https://github.com/dtb1000/SQLens/blob/main/docs/user-guide.md" target="_blank" rel="noopener">Open online</a><button class="ctl" type="button" id="guideClose">Close</button></div>
+    <div class="guide-layout">
+      <nav class="guide-toc" id="guideToc" aria-label="Guide contents"></nav>
+      <article class="guide-body" id="guideBody"></article>
+    </div>
+  </div>
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
