@@ -111,3 +111,7 @@ The step-by-step view cannot yet draw every query. The queries below still run a
 1. **Window functions with `GROUP BY`.** A query that uses both, such as `RANK() OVER (...)` together with `GROUP BY`, shows its result but no stages.
 2. **Named `WINDOW` clauses.** A window defined once with `WINDOW w AS (...)` and reused in the query shows its result but no stages.
 3. **`TOP` and `FETCH FIRST`.** SQL Server's `TOP` and Oracle's `FETCH FIRST` limit rows correctly, but the step that cuts the result down to N rows is not drawn as its own stage, as it is for `LIMIT`.
+
+## License
+
+Released under the Apache License 2.0. See LICENSE.
