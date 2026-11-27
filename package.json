@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Watch your data transform. A desktop SQL workbench that shows what a query does to your tables while you write it.",
   "main": "src/main/main.js",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "scripts": {
     "start": "electron .",
     "test": "node test/e2e.js",
